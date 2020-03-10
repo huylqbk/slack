@@ -20,7 +20,7 @@ func getenv(name string) string {
 }
 
 func main() {
-	token := "xoxb-691975367441-783537757120-VMvlL2IgXc7pkvCDSTQLZqdH"
+	token := "xoxb-691975367441-783537757120-bQIJGsvblpsvM19WtRYElPAM"
 	api := slack.New(token)
 	rtm := api.NewRTM()
 	rand.Seed(time.Now().UnixNano())
