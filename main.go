@@ -55,7 +55,7 @@ func ChiRouter() IChiRouter {
 }
 
 func main() {
-	token := "xoxb-691975367441-783537757120-bQIJGsvblpsvM19WtRYElPAM"
+	token := "xoxb-691975367441-783537757120-PgxkjCMcnT9SsojhtB9s8enw"
 	api := slack.New(token)
 	rtm := api.NewRTM()
 	rand.Seed(time.Now().UnixNano())
