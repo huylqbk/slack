@@ -32,7 +32,7 @@ type router struct{}
 func (router *router) InitRouter() *chi.Mux {
 	r := chi.NewRouter()
 	fmt.Println("Start service", 8080)
-	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		mess := map[string]interface{}{"success": true}
 		json.NewEncoder(w).Encode(mess)
 	})
@@ -55,15 +55,16 @@ func ChiRouter() IChiRouter {
 }
 
 func main() {
+	go slackRun()
+	http.ListenAndServe(":80", ChiRouter().InitRouter())
+}
+
+func slackRun() {
 	token := "xoxb-691975367441-783537757120-PgxkjCMcnT9SsojhtB9s8enw"
 	api := slack.New(token)
 	rtm := api.NewRTM()
 	rand.Seed(time.Now().UnixNano())
-
-	http.ListenAndServe(":80", ChiRouter().InitRouter())
-
 	go rtm.ManageConnection()
-
 	for {
 		select {
 		case msg := <-rtm.IncomingEvents:
