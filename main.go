@@ -62,6 +62,7 @@ type UserInfo struct {
 	Lonely      bool
 	PreQuestion int
 	Quesioned   map[int]bool
+	Answered    map[int]bool
 	PreAnswer   string
 }
 
@@ -73,12 +74,15 @@ func main() {
 func slackRun() {
 	token := getenv("TOKEN")
 	if token == "" {
-		token = "xoxb-691975367441-783537757120-kyraQwD8zuIHg0m0coIXToOH"
+		token = "xoxb-691975367441-783537757120-t1skkNkDSpB39v224AIDdY7Y"
 	}
 	fmt.Println("TOKEN", token)
 	api := slack.New(token)
 	rtm := api.NewRTM()
 	rand.Seed(time.Now().UnixNano())
+
+	var users map[string]UserInfo = make(map[string]UserInfo)
+
 	go rtm.ManageConnection()
 	for {
 		select {
@@ -154,11 +158,7 @@ func slackRun() {
 					"hôm nay thế nào baby?",
 					"love u bặc bặc",
 				}
-				if matchedFind {
-					str := text[2:]
-					find := strings.Replace(str, " ", "+", -1)
-					rtm.SendMessage(rtm.NewOutgoingMessage("KQ=> <https://google.com/search?q="+find+">", ev.Channel))
-				} else if matchedHCC {
+				if matchedHCC {
 					if matchedHello {
 						rtm.SendMessage(rtm.NewOutgoingMessage("hello cc", ev.Channel))
 					} else if matchedMode {
@@ -168,6 +168,11 @@ func slackRun() {
 						} else {
 							session = true
 							rtm.SendMessage(rtm.NewOutgoingMessage("Mode: Session", ev.Channel))
+							users[ev.User] = UserInfo{
+								ID:        ev.User,
+								Quesioned: map[int]bool{},
+								Answered:  map[int]bool{},
+							}
 						}
 					} else if matchedRepo {
 						rtm.SendMessage(rtm.NewOutgoingMessage("Ở đây <https://github.com/huylqbk>", ev.Channel))
@@ -202,6 +207,27 @@ func slackRun() {
 					} else {
 						rtm.SendMessage(rtm.NewOutgoingMessage("là sao?", ev.Channel))
 					}
+				} else if session {
+					info := users[ev.User]
+					if info.Name == "" && info.PreQuestion != 1 {
+						q := "Ten ban la gi?"
+						rtm.SendMessage(rtm.NewOutgoingMessage(q, ev.Channel))
+						info.PreQuestion = 1
+						info.Quesioned[1] = true
+						users[ev.User] = info
+					} else {
+						if _, ok := info.Answered[1]; !ok {
+							info.Name = text
+							info.Answered[1] = true
+							users[ev.User] = info
+						}
+						rtm.SendMessage(rtm.NewOutgoingMessage("Chuc "+info.Name+" vui ve!!! :)", ev.Channel))
+					}
+				} else if matchedFind {
+					str := text[2:]
+					find := strings.Replace(str, " ", "+", -1)
+					rtm.SendMessage(rtm.NewOutgoingMessage("KQ=> <https://google.com/search?q="+find+">", ev.Channel))
+
 				} else {
 					rtm.SendMessage(rtm.NewOutgoingMessage(autoReply[rand.Intn(len(autoReply))], ev.Channel))
 				}
