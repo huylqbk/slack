@@ -1,13 +1,17 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
+	"net/http"
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/go-chi/chi"
 	"github.com/slack-go/slack"
 )
 
@@ -19,11 +23,45 @@ func getenv(name string) string {
 	return v
 }
 
+type IChiRouter interface {
+	InitRouter() *chi.Mux
+}
+
+type router struct{}
+
+func (router *router) InitRouter() *chi.Mux {
+	r := chi.NewRouter()
+	fmt.Println("Start service", 8080)
+	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		mess := map[string]interface{}{"success": true}
+		json.NewEncoder(w).Encode(mess)
+	})
+
+	return r
+}
+
+var (
+	m          *router
+	routerOnce sync.Once
+)
+
+func ChiRouter() IChiRouter {
+	if m == nil {
+		routerOnce.Do(func() {
+			m = &router{}
+		})
+	}
+	return m
+}
+
 func main() {
 	token := "xoxb-691975367441-783537757120-bQIJGsvblpsvM19WtRYElPAM"
 	api := slack.New(token)
 	rtm := api.NewRTM()
 	rand.Seed(time.Now().UnixNano())
+
+	http.ListenAndServe(":8080", ChiRouter().InitRouter())
+
 	go rtm.ManageConnection()
 
 	for {
