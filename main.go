@@ -60,7 +60,7 @@ func main() {
 }
 
 func slackRun() {
-	token := "xoxb-691975367441-783537757120-PgxkjCMcnT9SsojhtB9s8enw"
+	token := "xoxb-691975367441-783537757120-gWlrtvhuyQg8Td8TH2612n41"
 	api := slack.New(token)
 	rtm := api.NewRTM()
 	rand.Seed(time.Now().UnixNano())
@@ -81,9 +81,12 @@ func slackRun() {
 				matchedHello, _ := regexp.MatchString("hello", text)
 				matchedName, _ := regexp.MatchString("tên|ten|name", text)
 				matchedRepo, _ := regexp.MatchString("repo|source|code", text)
-				matchedJira, _ := regexp.MatchString("ticket|task|jira", text)
+				matchedJira, _ := regexp.MatchString("ticket|task|jira|team", text)
 				matchedTag, _ := regexp.MatchString("tag", text)
 				matchedPlay, _ := regexp.MatchString("choi", text)
+				matchedYoutube, _ := regexp.MatchString("youtube|video", text)
+				matchedMail, _ := regexp.MatchString("mail|thu", text)
+				matchedSlack, _ := regexp.MatchString("slack", text)
 
 				autoReply := []string{
 					"Chờ xíu có người online rồi nói chuyện",
@@ -102,7 +105,7 @@ func slackRun() {
 					"ờ, rồi sao",
 					"hôm nay ăn gì nhỉ?",
 					"thay mặt Hy Heo, đang nghe",
-					"nói đi",
+					"nói đi <:)>",
 					"thu đi để lại lá vàng \n Heo đi để lại bàng hoàng trong Hy",
 					"Heo biết làm thơ đó",
 					"có gì không nào",
@@ -119,13 +122,23 @@ func slackRun() {
 					"corona muôn nơi",
 					"cập nhật tình hình corona nào",
 					"phải chăng E quá đáng iu",
+					"khi cô đơn E nhớ ai?",
+					"Hiiiiiiiiiiiiiiiiiiiiii",
+					"Chào cô bé may mắn",
+					"Rãnh đọc báo đi `https://vnexpress.net/suc-khoe`",
+					"Đọc tin tức nè `https://vnexpress.net/thoi-su`",
+					"Thế giới nay có gì `https://vnexpress.net/the-gioi` đọc đi",
+					"Chứng khoáng như thế nào rồi `https://vnexpress.net/kinh-doanh` nè",
+					"có phải E là thiên thần corona",
+					"hôm nay thế nào baby?",
+					"love u bặc bặc",
 				}
 
 				if matchedHCC {
 					if matchedHello {
 						rtm.SendMessage(rtm.NewOutgoingMessage("hello cc", ev.Channel))
 					} else if matchedRepo {
-						rtm.SendMessage(rtm.NewOutgoingMessage("Ở đây `https://bitbucket.org/`", ev.Channel))
+						rtm.SendMessage(rtm.NewOutgoingMessage("Ở đây <https://github.com/huylqbk>", ev.Channel))
 					} else if matchedName {
 						rtm.SendMessage(rtm.NewOutgoingMessage("Tên mình là HCC, vai trò là supporter ", ev.Channel))
 					} else if matchedTag {
@@ -134,9 +147,16 @@ func slackRun() {
 					} else if matchedPlay {
 						rtm.SendMessage(rtm.NewOutgoingMessage("chơi với <@ULL51M6LF> đi nè", ev.Channel))
 					} else if matchedJira {
-						rtm.SendMessage(rtm.NewOutgoingMessage("Đây `https://huylqbk.github.io`", ev.Channel))
+						rtm.SendMessage(rtm.NewOutgoingMessage("Đây <https://teams.microsoft.com>", ev.Channel))
 					} else if text == "" {
 						rtm.SendMessage(rtm.NewOutgoingMessage("hi <@"+ev.User+">", ev.Channel))
+
+					} else if matchedYoutube {
+						rtm.SendMessage(rtm.NewOutgoingMessage("open youtube <https://www.youtube.com/?gl=VN>", ev.Channel))
+					} else if matchedMail {
+						rtm.SendMessage(rtm.NewOutgoingMessage("open mail ne <https://outlook.office.com/mail/inbox>", ev.Channel))
+					} else if matchedSlack {
+						rtm.SendMessage(rtm.NewOutgoingMessage("open slack cty <https://app.slack.com/client/T891EANLE>", ev.Channel))
 					} else {
 						rtm.SendMessage(rtm.NewOutgoingMessage("là sao?", ev.Channel))
 					}
