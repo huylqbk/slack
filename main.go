@@ -60,7 +60,7 @@ func main() {
 	rtm := api.NewRTM()
 	rand.Seed(time.Now().UnixNano())
 
-	http.ListenAndServe(":8080", ChiRouter().InitRouter())
+	http.ListenAndServe(":80", ChiRouter().InitRouter())
 
 	go rtm.ManageConnection()
 
