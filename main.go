@@ -15,12 +15,8 @@ import (
 	"github.com/slack-go/slack"
 )
 
-func getenv(name string) string {
-	v := os.Getenv(name)
-	if v == "" {
-		panic("missing required environment variable " + name)
-	}
-	return v
+func getenv(token string) string {
+	return os.Getenv(token)
 }
 
 type IChiRouter interface {
@@ -54,13 +50,32 @@ func ChiRouter() IChiRouter {
 	return m
 }
 
+var session bool = false
+
+type UserInfo struct {
+	ID          string
+	Name        string
+	Old         int
+	Job         string
+	WorkAt      string
+	Home        string
+	Lonely      bool
+	PreQuestion int
+	Quesioned   map[int]bool
+	PreAnswer   string
+}
+
 func main() {
 	go slackRun()
-	http.ListenAndServe(":80", ChiRouter().InitRouter())
+	http.ListenAndServe(":8080", ChiRouter().InitRouter())
 }
 
 func slackRun() {
-	token := "xoxb-691975367441-783537757120-gWlrtvhuyQg8Td8TH2612n41"
+	token := getenv("TOKEN")
+	if token == "" {
+		token = "xoxb-691975367441-783537757120-kyraQwD8zuIHg0m0coIXToOH"
+	}
+	fmt.Println("TOKEN", token)
 	api := slack.New(token)
 	rtm := api.NewRTM()
 	rand.Seed(time.Now().UnixNano())
@@ -77,16 +92,22 @@ func slackRun() {
 				text = strings.TrimSpace(text)
 				text = strings.ToLower(text)
 				fmt.Println("Mess:", text)
+				matchedMode, _ := regexp.MatchString("mode", text)
 				matchedHCC, _ := regexp.MatchString(strings.ToLower(info.User.ID), text)
-				matchedHello, _ := regexp.MatchString("hello", text)
+				matchedHello, _ := regexp.MatchString("hello|hi", text)
 				matchedName, _ := regexp.MatchString("tên|ten|name", text)
-				matchedRepo, _ := regexp.MatchString("repo|source|code", text)
+				matchedRepo, _ := regexp.MatchString("repo|source|code|git", text)
 				matchedJira, _ := regexp.MatchString("ticket|task|jira|team", text)
 				matchedTag, _ := regexp.MatchString("tag", text)
 				matchedPlay, _ := regexp.MatchString("choi", text)
 				matchedYoutube, _ := regexp.MatchString("youtube|video", text)
 				matchedMail, _ := regexp.MatchString("mail|thu", text)
 				matchedSlack, _ := regexp.MatchString("slack", text)
+				matchedGG, _ := regexp.MatchString("gg|search", text)
+				matchedFB, _ := regexp.MatchString("fb|mxh|chat", text)
+				matchedZalo, _ := regexp.MatchString("zalo", text)
+				matchedHowTo, _ := regexp.MatchString("how to|how|error", text)
+				matchedFind, _ := regexp.MatchString("f:", text)
 
 				autoReply := []string{
 					"Chờ xíu có người online rồi nói chuyện",
@@ -133,10 +154,21 @@ func slackRun() {
 					"hôm nay thế nào baby?",
 					"love u bặc bặc",
 				}
-
-				if matchedHCC {
+				if matchedFind {
+					str := text[2:]
+					find := strings.Replace(str, " ", "+", -1)
+					rtm.SendMessage(rtm.NewOutgoingMessage("KQ=> <https://google.com/search?q="+find+">", ev.Channel))
+				} else if matchedHCC {
 					if matchedHello {
 						rtm.SendMessage(rtm.NewOutgoingMessage("hello cc", ev.Channel))
+					} else if matchedMode {
+						if session {
+							session = false
+							rtm.SendMessage(rtm.NewOutgoingMessage("Mode: Auto", ev.Channel))
+						} else {
+							session = true
+							rtm.SendMessage(rtm.NewOutgoingMessage("Mode: Session", ev.Channel))
+						}
 					} else if matchedRepo {
 						rtm.SendMessage(rtm.NewOutgoingMessage("Ở đây <https://github.com/huylqbk>", ev.Channel))
 					} else if matchedName {
@@ -157,6 +189,16 @@ func slackRun() {
 						rtm.SendMessage(rtm.NewOutgoingMessage("open mail ne <https://outlook.office.com/mail/inbox>", ev.Channel))
 					} else if matchedSlack {
 						rtm.SendMessage(rtm.NewOutgoingMessage("open slack cty <https://app.slack.com/client/T891EANLE>", ev.Channel))
+					} else if matchedGG {
+						rtm.SendMessage(rtm.NewOutgoingMessage("search gi <https://google.com.vn>", ev.Channel))
+					} else if matchedFB {
+						rtm.SendMessage(rtm.NewOutgoingMessage("news feed <https://facebook.com>", ev.Channel))
+					} else if matchedZalo {
+						rtm.SendMessage(rtm.NewOutgoingMessage("zalo o day <https://chat.zalo.me>", ev.Channel))
+					} else if matchedHowTo {
+						str := text[12:]
+						find := strings.Replace(str, " ", "+", -1)
+						rtm.SendMessage(rtm.NewOutgoingMessage("solution: <https://stackoverflow.com/search?q="+find+">", ev.Channel))
 					} else {
 						rtm.SendMessage(rtm.NewOutgoingMessage("là sao?", ev.Channel))
 					}
